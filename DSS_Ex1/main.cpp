@@ -156,8 +156,58 @@ inline byte GF_inv2(byte a)
     return gf_exp_table[255 - gf_log_table[a]];
 }
 
-// === Main ===
+// === Primitives (ex 6) ===
 
+
+//return count of primitives
+byte GF_find_prim_elems() {
+
+    bool* flags = new bool[256];
+    byte count = 0;
+
+    //for every element
+    byte elem=0;
+    do {
+
+        //reset flags
+        byte i=0;
+        do {
+            flags[i]=0;
+            i++;
+        } while(i!=0);
+
+        //calc other elements by rising ELEM in degrees
+        i=0;
+        do {
+            flags[GF_pow(elem, i)]=true;
+            i++;
+        } while(i!=0);
+
+        //count sum of flags
+        byte sum=0;
+        i=0;
+        do {
+            sum+=flags[i];
+            i++;
+        } while(i!=0);
+
+        //if all elements (except 0) are degrees of ELEM, it's primitive
+        if (sum == 255) {
+            //cout << "primitive=" << (int)elem << endl;
+            count++;
+        }
+        //else
+        //    cout << "sum=" << (int)sum << endl;
+
+        elem++;
+    } while (elem!=0);
+
+    delete [] flags;
+
+    return count;
+}
+
+// === Main ===
 
 int main()
 {
@@ -168,17 +218,19 @@ int main()
     bool testInv = GF_inv(a) == GF_inv2(a);
     bool testLog = GF_log(a) == GF_log2(a);
 
-
     bool test1 = a == GF_pow(two, GF_log(a));
     bool test2 = GF_log(GF_mul(a, b)) == GF_log(a) + GF_log(b);
     bool test3 = GF_mul(a, GF_inv(a)) == 1;
 
-    cout << testPow << " " <<
+    cout << "tests: " <<
+            testPow << " " <<
             testInv << " " <<
             testLog << " " <<
             test1 << " " <<
             test2 << " " <<
             test3 << " " << endl;
+
+    cout << "primitives_count=" << (int)GF_find_prim_elems() << endl;
 
     return 0;
 }
