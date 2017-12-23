@@ -2,7 +2,8 @@
 typedef unsigned char byte;
 
 
-int prim_poly = 0x11d;
+int _primPoly = 0x11d;
+byte _primElem = 0b10; //primitive element of field
 
 byte gf_log_table[] = {0, 0, 1, 25, 2, 50, 26, 198, 3, 223, 51, 238, 27, 104, 199,
     75, 4, 100, 224, 14, 52, 141, 239, 129, 28, 193, 105, 248, 200, 8, 76, 113,
@@ -55,12 +56,13 @@ byte gf_exp_table[] = {1, 2, 4, 8, 16, 32, 64, 128, 29, 58, 116, 232, 205, 135, 
     108, 216, 173, 71, 142};
 
 
-byte two = 0b10; //USE ONLY PRIMITIVE ELEMENT
-byte X = two;
-
 // === Without tables ===
 
 inline byte GF_sum(byte a, byte b) {
+    return a^b;
+}
+
+inline byte GF_sub(byte a, byte b) {
     return a^b;
 }
 
@@ -68,7 +70,7 @@ inline byte GF_mulX(byte a) {
 
     //if A will overflow, then substract prim_poly (with XOR) and shift
     if (a & 0b10000000)
-        a = (a << 1) ^ prim_poly;
+        a = (a << 1) ^ _primPoly;
     //else simple shift to left
     else
         a <<= 1;
@@ -99,6 +101,11 @@ inline byte GF_mul(byte a, byte b) {
     return sum;
 }
 
+inline byte GF_inv(byte a);
+inline byte GF_div(byte a, byte b) {
+    return GF_mul(a, GF_inv(b));
+}
+
 inline byte GF_pow(byte a, byte n) {
 
     if (n==0) return 1;
@@ -115,12 +122,12 @@ inline byte GF_pow(byte a, byte n) {
 
 inline byte GF_log(byte a) {
 
-    if (a == 0b0 || a == 0b1) return 0;
+    if (a == 0 || a == 1) return 0;
 
     byte n = 1;
 
     //brute force
-    while (GF_pow(two, n) != a)
+    while (GF_pow(_primElem, n) != a)
         n++;
 
     return n;
@@ -141,6 +148,14 @@ inline byte GF_mul2(byte a, byte b)
 
     return gf_exp_table[(gf_log_table[a] + gf_log_table[b]) % 255];
 }
+
+
+inline byte GF_div2(byte a, byte b)
+{
+    if (a == 0) return 0;
+    return gf_exp_table[(gf_log_table[a] + 255 - gf_log_table[b]) % 255];
+}
+
 
 inline byte GF_pow2(byte a, byte n)
 {
