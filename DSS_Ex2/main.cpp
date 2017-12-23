@@ -25,11 +25,20 @@ int main()
     Recovery2d_S0S1(&D[0], nDrives, nSyndromes, &dFailedPos[0]);
     bool test4 = D[dFailedPos[0]] == 0x33 && D[dFailedPos[1]] == 0x77;
 
+
+    //Find 1 hidden fail
+    //block 3 is failed, correct value is 0x2a
+    byte D2[16] = {0x1e, 0x45, 0x6f, 0x2, 0x88, 0xef, 0x7b, 0x0, 0xbb, 0x67, 0x17, 0x8, 0x0f, 0x86, 0x48, 0x88};
+    int dFailedPos2 = 0;
+    SDC_Detection_S0S1(&D2[0], nDrives, nSyndromes, &dFailedPos2);
+    bool test5 = dFailedPos2 == 3 && D2[3] == 0x2a;
+
     cout << "tests: " <<
             test1 << " " <<
             test2 << " " <<
             test3 << " " <<
-            test4 << " " << endl;
+            test4 << " " <<
+            test5 << " " << endl;
     return 0;
 }
 

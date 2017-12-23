@@ -128,3 +128,43 @@ int Recovery2d_S0S1(byte *D, int nDrives, int nSyndromes, int *Failed) {
 
     return 0;
 }
+
+
+int SDC_Detection_S0S1(byte *D, int nDrives, int nSyndromes, int *Failed) {
+
+    if (D == nullptr || nDrives<1 || nSyndromes!=2) return -1;
+
+    //Calc first syndrome
+    byte S0d = 0;
+    for (int i=0; i<nDrives; i++) {
+        S0d = GF_sum(S0d, D[i]);
+    }
+    //If correct then there is no fail blocks
+    if (D[nDrives] == S0d) return 0;
+
+
+    //Calc second syndrome without current block
+    byte S1d = 0;
+    for (int k=0; k<nDrives; k++) {
+        //S1d+=D[i]*x^i
+        S1d = GF_sum(S1d,
+             GF_mul(D[k],
+             GF_pow(_primElem, k)));
+    }
+
+    //Calc index of filed element
+    // n = log((S0d+s0)*(s1d+s1)^(-1))
+    byte n = GF_log(
+               GF_mul(
+                 GF_inv(
+                   GF_sum(D[nDrives], S0d)),
+                 GF_sum(D[nDrives+1], S1d)));
+
+    //Calc element
+    // d = S0d+s0+dFailed
+    D[n] = GF_sum(GF_sum(D[nDrives], S0d), D[n]);
+    Failed[0] = n;
+
+    return 1;
+
+}
