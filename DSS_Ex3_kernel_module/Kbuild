@@ -1,0 +1,5 @@
+ccflags-y := -Wall
+
+obj-m := test-module.o
+
+test-module-y := module.o 
